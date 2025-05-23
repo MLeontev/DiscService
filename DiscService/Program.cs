@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using DiscService.Messaging;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 namespace DiscService;
@@ -10,7 +11,7 @@ class Program
         var host = Host.CreateDefaultBuilder(args)
             .ConfigureServices(services =>
             {
-                services.AddHostedService<CommandWorkerService>();
+                services.AddHostedService<KafkaCommandService>();
             })
             .Build();
 
