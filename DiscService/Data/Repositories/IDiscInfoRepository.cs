@@ -1,6 +1,9 @@
+using DiscService.Models;
+
 namespace DiscService.Data.Repositories;
 
-public class IDiscInfoRepository
+public interface IDiscInfoRepository
 {
-    
+    DiscInfo? GetByType(DiscType type);
+    List<DiscInfo> GetAll();
 }

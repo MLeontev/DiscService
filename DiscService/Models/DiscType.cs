@@ -1,4 +1,4 @@
-namespace test_tg_bot.Models;
+namespace DiscService.Models;
 
 public enum DiscType
 {
@@ -6,4 +6,19 @@ public enum DiscType
     Influence,
     Steadiness,
     Compliance
+}
+
+public static class DiscTypeExtensions
+{
+    public static string ToEmoji(this DiscType discType)
+    {
+        return discType switch
+        {
+            DiscType.Dominance => "🔴",
+            DiscType.Influence => "🟡",
+            DiscType.Steadiness => "🟢",
+            DiscType.Compliance => "🔵",
+            _ => "❓"
+        };
+    }
 }

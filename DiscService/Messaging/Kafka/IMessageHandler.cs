@@ -1,6 +1,8 @@
+using DiscService.Messaging.Models;
+
 namespace DiscService.Messaging.Kafka;
 
-public class IMessageHandler
+public interface IMessageHandler
 {
-    
+    Task<BotMessage?> HandleAsync(BotMessage incoming);
 }

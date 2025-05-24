@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace DiscService.Messaging;
+namespace DiscService.Messaging.Models;
 
 public class ServiceRegistrationRequest
 {

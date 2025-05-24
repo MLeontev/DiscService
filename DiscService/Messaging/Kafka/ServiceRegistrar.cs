@@ -30,10 +30,12 @@ public class ServiceRegistrar : IServiceRegistrar
             Description = "Описание сервиса",
             Commands =
             [
-                new CommandInfo("/hello", "Описание команды1", "ADD", "ANONYMOUS"),
-                new CommandInfo("/world", "Описание команды2", "ADD", "ANONYMOUS"), 
-                new CommandInfo("/buttons", "Описание команды3", "ADD", "ANONYMOUS"),
-                new CommandInfo("callback_test", "Описание callback123", "ADD", "ANONYMOUS")
+                new CommandInfo("/disc_info", "Получить описание психотипов по DISC", "ADD", "ANONYMOUS"),
+                new CommandInfo("/start_test", "Начать DISC-тестирование", "ADD", "ANONYMOUS"),
+                new CommandInfo("disc_answer_A", "Ответ A на текущий вопрос DISC-теста", "ADD", "ANONYMOUS"),
+                new CommandInfo("disc_answer_B", "Ответ Б на текущий вопрос DISC-теста", "ADD", "ANONYMOUS"),
+                new CommandInfo("disc_answer_C", "Ответ В на текущий вопрос DISC-теста", "ADD", "ANONYMOUS"),
+                new CommandInfo("disc_answer_D", "Ответ Г на текущий вопрос DISC-теста", "ADD", "ANONYMOUS")
             ]
         };
 
@@ -70,10 +72,6 @@ public class ServiceRegistrar : IServiceRegistrar
             {
                 _logger.LogError("Ошибка при регистрации сервиса: {}", ex.Message);
                 throw;
-            }
-            finally
-            {
-                consumer.Close();
             }
         }
         
