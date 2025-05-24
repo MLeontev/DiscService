@@ -1,6 +1,6 @@
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Confluent.Kafka;
+using DiscService.Messaging.Models;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -61,14 +61,10 @@ public class KafkaCommandService : BackgroundService
             Description = "Описание сервиса",
             Commands =
             [
-                new CommandInfo
-                    { Name = "/hello", Description = "Описание команды1", Action = "ADD", Right = "ANONYMOUS" },
-                new CommandInfo
-                    { Name = "/world", Description = "Описание команды2", Action = "ADD", Right = "ANONYMOUS" },
-                new CommandInfo
-                    { Name = "/buttons", Description = "Описание команды3", Action = "ADD", Right = "ANONYMOUS" },
-                new CommandInfo 
-                    { Name = "callback_test", Description = "Описание callback123", Action = "ADD", Right = "ANONYMOUS" }
+                new CommandInfo("/hello", "Описание команды1", "ADD", "ANONYMOUS"),
+                new CommandInfo("/world", "Описание команды2", "ADD", "ANONYMOUS"), 
+                new CommandInfo("/buttons", "Описание команды3", "ADD", "ANONYMOUS"),
+                new CommandInfo("callback_test", "Описание callback123", "ADD", "ANONYMOUS")
             ]
         };
 
@@ -205,61 +201,4 @@ public class KafkaCommandService : BackgroundService
         base.Dispose();
         GC.SuppressFinalize(this);
     }
-}
-
-public class ServiceRegistrationResponse
-{
-    [JsonPropertyName("serviceName")]public string ServiceName { get; set; }
-
-    [JsonPropertyName("consumeTopic")] public string ConsumeTopic { get; set; }
-
-    [JsonPropertyName("produceTopic")] public string ProduceTopic { get; set; }
-
-    [JsonPropertyName("message")] public string Message { get; set; }
-}
-
-public class CommandInfo
-{
-    [JsonPropertyName("name")] public string Name { get; set; }
-
-    [JsonPropertyName("description")] public string Description { get; set; }
-
-    [JsonPropertyName("action")] public string Action { get; set; }
-
-    [JsonPropertyName("right")] public string Right { get; set; }
-}
-
-public class ServiceRegistrationRequest
-{
-    [JsonPropertyName("name")] public string Name { get; set; }
-
-    [JsonPropertyName("description")] public string Description { get; set; }
-
-    [JsonPropertyName("commands")] public List<CommandInfo> Commands { get; set; }
-}
-
-public class BotMessage
-{
-    [JsonPropertyName("method")] public string? Method { get; set; }
-
-    [JsonPropertyName("filename")] public string? Filename { get; set; }
-
-    [JsonPropertyName("data")] public SendMessageData Data { get; set; } // объект типа SendMessage и т.п.
-
-    [JsonPropertyName("kafkaMessageId")] public Guid KafkaMessageId { get; set; }
-
-    [JsonPropertyName("status")] public string? Status { get; set; } // "IN_PROGRESS", "COMPLETED", и т.д.
-}
-
-public class SendMessageData
-{
-    [JsonPropertyName("chat_id")] public string? ChatId { get; set; }
-
-    [JsonPropertyName("text")] public string? Text { get; set; }
-
-    [JsonPropertyName("method")] public string Method { get; set; } = "sendmessage";
-
-    [JsonPropertyName("parse_mode")] public string? ParseMode { get; set; }
-
-    [JsonPropertyName("reply_markup")] public object? ReplyMarkup { get; set; }
 }
