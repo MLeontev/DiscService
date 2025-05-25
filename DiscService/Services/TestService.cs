@@ -1,7 +1,8 @@
-using System.Text;
+using DiscService.Data;
 using DiscService.Data.Repositories;
 using DiscService.Messaging.Models;
 using DiscService.Models;
+using DiscService.Services.Utils;
 
 namespace DiscService.Services;
 
@@ -9,30 +10,66 @@ public class TestService
 {
     private readonly IQuestionRepository _questionRepository;
     private readonly SessionManager _sessionManager;
+    private readonly AppDbContext _dbContext;
 
     public TestService(
-        IQuestionRepository questionRepository, 
-        SessionManager sessionManager)
+        IQuestionRepository questionRepository,
+        SessionManager sessionManager,
+        AppDbContext dbContext)
     {
         _questionRepository = questionRepository;
         _sessionManager = sessionManager;
+        _dbContext = dbContext;
     }
 
     public BotMessage? HandleStartTest(string chatId, Guid kafkaMessageId)
     {
         var session = _sessionManager.CreateSession(chatId);
         session.CurrentQuestionNumber = 1;
-        
         return GetQuestionMessage(chatId, 1, kafkaMessageId);
     }
 
-    public BotMessage? HandleAnswer(string chatId, string callbackData, Guid kafkaMessageId)
+    public async Task<BotMessage?> HandleAnswer(string chatId, string callbackData, Guid kafkaMessageId)
     {
         var session = _sessionManager.GetSession(chatId);
-        if (session == null || !callbackData.StartsWith("disc_answer"))
-            return null;
+        if (session == null)
+            return BotMessage.Create(chatId, kafkaMessageId,
+                "Тест не начат или завершён. Отправьте /start_test, чтобы начать заново.", parseMode: null);
 
-        var label = callbackData.Replace("disc_answer_", "") switch
+        if (!callbackData.StartsWith("disc_answer")) return null;
+
+        var label = GetAnswerLabel(callbackData);
+        if (label == null) return null;
+
+        var currentQuestion = _questionRepository.GetByNumber(session.CurrentQuestionNumber);
+
+        var selectedAnswer = currentQuestion?.Answers.FirstOrDefault(a => a.Label == label);
+        if (selectedAnswer == null) return null;
+
+        var chatMessage = BotMessage.Create(chatId, kafkaMessageId, $"Вы ответили: {selectedAnswer.Text}", parseMode: null);
+
+        session.UserAnswers.Add(new UserAnswer(session.CurrentQuestionNumber, selectedAnswer.Label, selectedAnswer.DiscType));
+        session.CurrentQuestionNumber++;
+
+        if (session.CurrentQuestionNumber > _questionRepository.GetAll().Count)
+            return await FinishTest(session, kafkaMessageId);
+
+        return GetQuestionMessage(chatId, session.CurrentQuestionNumber, kafkaMessageId);
+    }
+
+    private BotMessage? GetQuestionMessage(string chatId, int number, Guid kafkaMessageId)
+    {
+        var question = _questionRepository.GetByNumber(number);
+        if (question == null) return null;
+
+        return BotMessage.Create(chatId, kafkaMessageId,
+            MessageFormatter.FormatQuestion(question),
+            KeyboardBuilder.BuildAnswerKeyboard(question));
+    }
+
+    private string? GetAnswerLabel(string callbackData)
+    {
+        return callbackData.Replace("disc_answer_", "") switch
         {
             "A" => "А",
             "B" => "Б",
@@ -40,124 +77,27 @@ public class TestService
             "D" => "Г",
             _ => null
         };
-        
-        var currentQuestion = _questionRepository.GetByNumber(session.CurrentQuestionNumber);
-
-        var selectedAnswer = currentQuestion?.Answers.FirstOrDefault(a => a.Label == label);
-        if (selectedAnswer == null) return null;
-        
-        session.UserAnswers.Add(new UserAnswer(
-            session.CurrentQuestionNumber, 
-            selectedAnswer.Label, 
-            selectedAnswer.DiscType));
-        
-        session.CurrentQuestionNumber++;
-
-        if (session.CurrentQuestionNumber > _questionRepository.GetAll().Count)
-        {
-            _sessionManager.RemoveSession(chatId);
-            
-            var result = new TestResult
-            {
-                ChatId = chatId,
-                FinishedAt = DateTime.UtcNow,
-                DominanceScore = session.UserAnswers.Count(a => a.SelectedCategory == DiscType.Dominance),
-                InfluenceScore = session.UserAnswers.Count(a => a.SelectedCategory == DiscType.Influence),
-                SteadinessScore = session.UserAnswers.Count(a => a.SelectedCategory == DiscType.Steadiness),
-                ComplianceScore = session.UserAnswers.Count(a => a.SelectedCategory == DiscType.Compliance)
-            };
-            
-            return new BotMessage
-            {
-                Method = "sendmessage",
-                Status = "COMPLETED",
-                Data = new SendMessageData
-                {
-                    ChatId = chatId,
-                    Text = FormatResult(result),
-                    ParseMode = "Markdown"
-                },
-                KafkaMessageId = kafkaMessageId
-            };
-        }
-        
-        return GetQuestionMessage(chatId, session.CurrentQuestionNumber, kafkaMessageId);
     }
-    
-    private BotMessage? GetQuestionMessage(string chatId, int number, Guid kafkaMessageId)
+
+    private async Task<BotMessage> FinishTest(UserSession session, Guid kafkaMessageId)
     {
-        var question = _questionRepository.GetByNumber(number);
-        if (question == null) return null;
-        
-        var questionMessage = FormatQuestionMessage(question);
-        var replyMarkup = GenerateAnswerButtons(question);
-        
-        return new BotMessage
+        _sessionManager.RemoveSession(session.ChatId);
+
+        var result = new TestResult
         {
-            Method = "sendmessage",
-            Status = "COMPLETED",
-            Data = new SendMessageData
-            {
-                ChatId = chatId,
-                Text = questionMessage,
-                ParseMode = "Markdown",
-                ReplyMarkup = replyMarkup
-            },
-            KafkaMessageId = kafkaMessageId
+            ChatId = session.ChatId,
+            FinishedAt = DateTime.UtcNow,
+            DominanceScore = session.UserAnswers.Count(a => a.SelectedCategory == DiscType.Dominance),
+            InfluenceScore = session.UserAnswers.Count(a => a.SelectedCategory == DiscType.Influence),
+            SteadinessScore = session.UserAnswers.Count(a => a.SelectedCategory == DiscType.Steadiness),
+            ComplianceScore = session.UserAnswers.Count(a => a.SelectedCategory == DiscType.Compliance)
         };
-    }
 
-    private static object GenerateAnswerButtons(Question question)
-    {
-        var labelMap = new Dictionary<string, string>
-        {
-            ["А"] = "A",
-            ["Б"] = "B",
-            ["В"] = "C",
-            ["Г"] = "D"
-        };
-        
-        var buttons = question.Answers
-            .Select(a => new
-            {
-                a.Label, 
-                Callback = $"disc_answer_{labelMap[a.Label]}"
-            })
-            .Chunk(2)
-            .Select(chunk => chunk
-                .Select(a => new
-                {
-                    text = a.Label, 
-                    callback_data = a.Callback
-                }).ToArray())
-            .ToArray();
-        
-        return new
-        {
-            inline_keyboard = buttons
-        };
-    }
+        _dbContext.TestResults.Add(result);
+        await _dbContext.SaveChangesAsync();
 
-    private static string FormatQuestionMessage(Question question)
-    {
-        var sb = new StringBuilder();
-        sb.AppendLine($"*Вопрос {question.Number}*:");
-        sb.AppendLine($"{question.Text}");
-        foreach (var option in question.Answers)
-        {
-            sb.AppendLine($"\n*{option.Label})* {option.Text}");
-        }
+        var message = $"Тест завершён! Ваш результат:\n" + MessageFormatter.FormatResult(result);
 
-        return sb.ToString();
-    }
-    
-    private static string FormatResult(TestResult result)
-    {
-        var sb = new StringBuilder();
-        sb.AppendLine($"{DiscType.Dominance.ToEmoji()} D: {result.DominanceScore}");
-        sb.AppendLine($"{DiscType.Influence.ToEmoji()} I: {result.InfluenceScore}");
-        sb.AppendLine($"{DiscType.Steadiness.ToEmoji()} S: {result.SteadinessScore}");
-        sb.AppendLine($"{DiscType.Compliance.ToEmoji()} C: {result.ComplianceScore}");
-        return sb.ToString();
+        return BotMessage.Create(session.ChatId, kafkaMessageId, message, KeyboardBuilder.BuildDiscInfoKeyboard());
     }
 }

@@ -11,11 +11,34 @@ public class BotMessage
     public string? Filename { get; set; }
 
     [JsonPropertyName("data")]
-    public SendMessageData Data { get; set; }
+    public MessageData Data { get; set; }
 
     [JsonPropertyName("kafkaMessageId")]
     public Guid KafkaMessageId { get; set; }
 
     [JsonPropertyName("status")]
     public string? Status { get; set; }
+
+    public static BotMessage Create(
+        string chatId,
+        Guid kafkaMessageId,
+        string text,
+        object? replyMarkup = null,
+        string status = "COMPLETED",
+        string? parseMode = "Markdown")
+    {
+        return new BotMessage
+        {
+            Method = "sendmessage",
+            KafkaMessageId = kafkaMessageId,
+            Status = status,
+            Data = new MessageData
+            {
+                ChatId = chatId,
+                Text = text,
+                ParseMode = parseMode,
+                ReplyMarkup = replyMarkup
+            }
+        };
+    }
 }

@@ -14,18 +14,18 @@ public class KafkaCommandService : BackgroundService
     private readonly IProducer<Null, string> _producer;
     private readonly KafkaSettings _kafkaSettings;
     private readonly IServiceRegistrar _serviceRegistrar;
-    
+
     private readonly IServiceScopeFactory _serviceScopeFactory;
-    
+
     private IConsumer<Ignore, string> _consumer;
     private string _consumeTopic;
     private string _produceTopic;
 
     public KafkaCommandService(
-        ILogger<KafkaCommandService> logger, 
+        ILogger<KafkaCommandService> logger,
         IProducer<Null, string> producer,
-        IOptions<KafkaSettings> kafkaSettings, 
-        IServiceRegistrar serviceRegistrar, 
+        IOptions<KafkaSettings> kafkaSettings,
+        IServiceRegistrar serviceRegistrar,
         IServiceScopeFactory serviceScopeFactory)
     {
         _logger = logger;
@@ -48,24 +48,28 @@ public class KafkaCommandService : BackgroundService
 
         _consumer = new ConsumerBuilder<Ignore, string>(consumerConfig).Build();
         _consumer.Subscribe(_consumeTopic);
-        
+
         while (!stoppingToken.IsCancellationRequested)
             try
             {
                 var consumeResult = _consumer.Consume(stoppingToken);
                 if (consumeResult == null) continue;
-                
+
                 var incomingMessage = JsonSerializer.Deserialize<BotMessage>(consumeResult.Message.Value);
                 if (incomingMessage == null) continue;
-                
+
                 using var scope = _serviceScopeFactory.CreateScope();
                 var handler = scope.ServiceProvider.GetRequiredService<IMessageHandler>();
+
                 var response = await handler.HandleAsync(incomingMessage);
-                if (response != null)
-                {
-                    var json = JsonSerializer.Serialize(response);
-                    await _producer.ProduceAsync(_produceTopic, new Message<Null, string> { Value = json }, stoppingToken);
-                }
+
+                response ??= BotMessage.Create(
+                        incomingMessage.Data.ChatId!,
+                        Guid.NewGuid(),
+                        "Произошла ошибка. Пожалуйста, попробуйте снова.");
+
+                var json = JsonSerializer.Serialize(response);
+                await _producer.ProduceAsync(_produceTopic, new Message<Null, string> { Value = json }, stoppingToken);
             }
             catch (ConsumeException ex)
             {
@@ -80,5 +84,13 @@ public class KafkaCommandService : BackgroundService
         _producer.Dispose();
         base.Dispose();
         GC.SuppressFinalize(this);
+    }
+
+    private bool IsValidBotMessage(BotMessage? message)
+    {
+        return message != null
+            && message.Data != null
+            && !string.IsNullOrEmpty(message.Data.ChatId)
+            && !string.IsNullOrEmpty(message.Data.Text);
     }
 }

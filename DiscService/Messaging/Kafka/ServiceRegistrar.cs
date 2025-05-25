@@ -13,8 +13,8 @@ public class ServiceRegistrar : IServiceRegistrar
     private readonly ILogger<ServiceRegistrar> _logger;
 
     public ServiceRegistrar(
-        IOptions<KafkaSettings> kafkaSettings, 
-        IProducer<Null, string> producer, 
+        IOptions<KafkaSettings> kafkaSettings,
+        IProducer<Null, string> producer,
         ILogger<ServiceRegistrar> logger)
     {
         _producer = producer;
@@ -31,26 +31,29 @@ public class ServiceRegistrar : IServiceRegistrar
             Commands =
             [
                 new CommandInfo("/disc_info", "Получить описание психотипов по DISC", "ADD", "ANONYMOUS"),
-                new CommandInfo("/start_test", "Начать DISC-тестирование", "ADD", "ANONYMOUS"),
+                new CommandInfo("/start_disc_test", "Начать DISC-тестирование", "ADD", "ANONYMOUS"),
+                new CommandInfo("/disc_result", "Получить результат последнего DISC-тестирования", "ADD", "ANONYMOUS"),
+                new CommandInfo("/compare_disc_result", "Сравнить результаты DISC-тестирования", "ADD", "ANONYMOUS"),
                 new CommandInfo("disc_answer_A", "Ответ A на текущий вопрос DISC-теста", "ADD", "ANONYMOUS"),
                 new CommandInfo("disc_answer_B", "Ответ Б на текущий вопрос DISC-теста", "ADD", "ANONYMOUS"),
                 new CommandInfo("disc_answer_C", "Ответ В на текущий вопрос DISC-теста", "ADD", "ANONYMOUS"),
-                new CommandInfo("disc_answer_D", "Ответ Г на текущий вопрос DISC-теста", "ADD", "ANONYMOUS")
+                new CommandInfo("disc_answer_D", "Ответ Г на текущий вопрос DISC-теста", "ADD", "ANONYMOUS"),
+                new CommandInfo("disc_info", "Получить описание психотипов по DISC", "ADD", "ANONYMOUS")
             ]
         };
 
         var requestJson = JsonSerializer.Serialize(registrationRequest);
-        
+
         await _producer.ProduceAsync(
-            _kafkaSettings.InfoRequestTopic, 
-            new Message<Null, string> { Value = requestJson }, 
+            _kafkaSettings.InfoRequestTopic,
+            new Message<Null, string> { Value = requestJson },
             stoppingToken);
-        
+
         var consumerConfig = new ConsumerConfig
         {
             BootstrapServers = _kafkaSettings.BootstrapServers,
             GroupId = $"{_kafkaSettings.ServiceName}-registration-group",
-            AutoOffsetReset = AutoOffsetReset.Earliest
+            AutoOffsetReset = AutoOffsetReset.Latest
         };
 
         using var consumer = new ConsumerBuilder<Ignore, string>(consumerConfig).Build();
@@ -74,7 +77,7 @@ public class ServiceRegistrar : IServiceRegistrar
                 throw;
             }
         }
-        
+
         throw new InvalidOperationException("Регистрация сервиса не завершена — не получен ответ от Kafka.");
     }
 }
