@@ -5,10 +5,10 @@ namespace DiscService.Services.Utils;
 
 public static class MessageFormatter
 {
-    public static string FormatQuestion(Question question)
+    public static string FormatQuestion(Question question, int questionsCount)
     {
         var sb = new StringBuilder();
-        sb.AppendLine($"*Вопрос {question.Number}*:");
+        sb.AppendLine($"*Вопрос {question.Number} из {questionsCount}*:");
         sb.AppendLine($"{question.Text}");
         foreach (var option in question.Answers)
         {
@@ -21,10 +21,10 @@ public static class MessageFormatter
     public static string FormatResult(TestResult result)
     {
         var sb = new StringBuilder();
-        sb.AppendLine($"{DiscType.Dominance.ToEmoji()} D: {result.DominanceScore}");
-        sb.AppendLine($"{DiscType.Influence.ToEmoji()} I: {result.InfluenceScore}");
-        sb.AppendLine($"{DiscType.Steadiness.ToEmoji()} S: {result.SteadinessScore}");
-        sb.AppendLine($"{DiscType.Compliance.ToEmoji()} C: {result.ComplianceScore}");
+        sb.AppendLine($"*{DiscType.Dominance.ToEmoji()} D:* {result.DominanceScore}");
+        sb.AppendLine($"*{DiscType.Influence.ToEmoji()} I:* {result.InfluenceScore}");
+        sb.AppendLine($"*{DiscType.Steadiness.ToEmoji()} S:* {result.SteadinessScore}");
+        sb.AppendLine($"*{DiscType.Compliance.ToEmoji()} C:* {result.ComplianceScore}");
         return sb.ToString();
     }
 
@@ -65,7 +65,9 @@ public static class MessageFormatter
 
         if (diff == 0)
             return $"{newScore} (без изменений)";
-        var arrow = diff > 0 ? "⬆️" : "⬇️";
-        return $"{oldScore} → {newScore} ({arrow} {Math.Abs(diff)})";
+
+        var changeSymbol = diff > 0 ? "+" : "-";
+
+        return $"{oldScore} → {newScore} ({changeSymbol}{Math.Abs(diff)})";
     }
 }

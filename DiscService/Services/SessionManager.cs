@@ -24,4 +24,9 @@ public class SessionManager
     {
         return _sessions.TryRemove(chatId, out _);
     }
+
+    public bool HasSession(string chatId)
+    {
+        return _sessions.TryGetValue(chatId, out _);
+    }
 }

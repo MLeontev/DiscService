@@ -1,5 +1,7 @@
 using System.Text.Json;
 using Confluent.Kafka;
+using DiscService.Constants;
+using DiscService.Messaging.Kafka.Interfaces;
 using DiscService.Messaging.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -24,21 +26,36 @@ public class ServiceRegistrar : IServiceRegistrar
 
     public async Task<(string consumeTopic, string produceTopic)> RegisterAsync(CancellationToken stoppingToken)
     {
+        var consumerConfig = new ConsumerConfig
+        {
+            BootstrapServers = _kafkaSettings.BootstrapServers,
+            GroupId = $"{_kafkaSettings.ServiceName}-registration-group",
+            AutoOffsetReset = AutoOffsetReset.Earliest
+        };
+
+        using var consumer = new ConsumerBuilder<Ignore, string>(consumerConfig).Build();
+        consumer.Subscribe(_kafkaSettings.InfoResponseTopic);
+
         var registrationRequest = new ServiceRegistrationRequest
         {
             Name = _kafkaSettings.ServiceName,
             Description = "Описание сервиса",
             Commands =
             [
-                new CommandInfo("/disc_info", "Получить описание психотипов по DISC", "ADD", "ANONYMOUS"),
-                new CommandInfo("/start_disc_test", "Начать DISC-тестирование", "ADD", "ANONYMOUS"),
-                new CommandInfo("/disc_result", "Получить результат последнего DISC-тестирования", "ADD", "ANONYMOUS"),
-                new CommandInfo("/compare_disc_result", "Сравнить результаты DISC-тестирования", "ADD", "ANONYMOUS"),
-                new CommandInfo("disc_answer_A", "Ответ A на текущий вопрос DISC-теста", "ADD", "ANONYMOUS"),
-                new CommandInfo("disc_answer_B", "Ответ Б на текущий вопрос DISC-теста", "ADD", "ANONYMOUS"),
-                new CommandInfo("disc_answer_C", "Ответ В на текущий вопрос DISC-теста", "ADD", "ANONYMOUS"),
-                new CommandInfo("disc_answer_D", "Ответ Г на текущий вопрос DISC-теста", "ADD", "ANONYMOUS"),
-                new CommandInfo("disc_info", "Получить описание психотипов по DISC", "ADD", "ANONYMOUS")
+                new CommandInfo(BotCommands.GetInfoCommand, "Получить описание психотипов по DISC", "ADD", "ANONYMOUS"),
+                new CommandInfo(BotCommands.StartTestCommand, "Начать DISC-тестирование", "ADD", "ANONYMOUS"),
+                new CommandInfo(BotCommands.LastResultCommand, "Получить результат последнего DISC-тестирования", "ADD", "ANONYMOUS"),
+                new CommandInfo(BotCommands.CompareResultsCommand, "Сравнить результаты DISC-тестирования", "ADD", "ANONYMOUS"),
+                new CommandInfo(BotCommands.CancelTestCommand, "Прервать DISC-тестирование", "ADD", "ANONYMOUS"),
+
+                new CommandInfo(BotCommands.AnswerA, "Ответ A на текущий вопрос DISC-теста", "ADD", "ANONYMOUS"),
+                new CommandInfo(BotCommands.AnswerB, "Ответ Б на текущий вопрос DISC-теста", "ADD", "ANONYMOUS"),
+                new CommandInfo(BotCommands.AnswerC, "Ответ В на текущий вопрос DISC-теста", "ADD", "ANONYMOUS"),
+                new CommandInfo(BotCommands.AnswerD, "Ответ Г на текущий вопрос DISC-теста", "ADD", "ANONYMOUS"),
+
+                new CommandInfo(BotCommands.GetInfoCallback, "Получить описание психотипов по DISC", "ADD", "ANONYMOUS"),
+                new CommandInfo(BotCommands.CompareResultsCallback, "Сравнить результаты DISC-тестирования", "ADD", "ANONYMOUS"),
+                new CommandInfo(BotCommands.BeginTestCallback, "Начать DISC-тестирование", "ADD", "ANONYMOUS"),
             ]
         };
 
@@ -49,21 +66,12 @@ public class ServiceRegistrar : IServiceRegistrar
             new Message<Null, string> { Value = requestJson },
             stoppingToken);
 
-        var consumerConfig = new ConsumerConfig
-        {
-            BootstrapServers = _kafkaSettings.BootstrapServers,
-            GroupId = $"{_kafkaSettings.ServiceName}-registration-group",
-            AutoOffsetReset = AutoOffsetReset.Latest
-        };
-
-        using var consumer = new ConsumerBuilder<Ignore, string>(consumerConfig).Build();
-        consumer.Subscribe(_kafkaSettings.InfoResponseTopic);
-
         while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
                 var consumeResult = consumer.Consume(stoppingToken);
+
                 var response = JsonSerializer.Deserialize<ServiceRegistrationResponse>(consumeResult.Message.Value);
 
                 if (response?.ServiceName == _kafkaSettings.ServiceName)

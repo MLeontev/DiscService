@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Confluent.Kafka;
+using DiscService.Messaging.Kafka.Interfaces;
 using DiscService.Messaging.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -50,6 +51,7 @@ public class KafkaCommandService : BackgroundService
         _consumer.Subscribe(_consumeTopic);
 
         while (!stoppingToken.IsCancellationRequested)
+        {
             try
             {
                 var consumeResult = _consumer.Consume(stoppingToken);
@@ -63,10 +65,11 @@ public class KafkaCommandService : BackgroundService
 
                 var response = await handler.HandleAsync(incomingMessage);
 
-                response ??= BotMessage.Create(
-                        incomingMessage.Data.ChatId!,
+                if (incomingMessage.Data.ChatId != null)
+                    response ??= BotMessage.Create(
+                        incomingMessage.Data.ChatId,
                         Guid.NewGuid(),
-                        "Произошла ошибка. Пожалуйста, попробуйте снова.");
+                        "Произошла ошибка. Пожалуйста, попробуйте снова");
 
                 var json = JsonSerializer.Serialize(response);
                 await _producer.ProduceAsync(_produceTopic, new Message<Null, string> { Value = json }, stoppingToken);
@@ -75,22 +78,15 @@ public class KafkaCommandService : BackgroundService
             {
                 _logger.LogError("Ошибка обработки сообщения: {}", ex.Error.Reason);
             }
+        }
     }
 
     public override void Dispose()
     {
-        _consumer.Close();
-        _consumer.Dispose();
-        _producer.Dispose();
+        _consumer?.Close();
+        _consumer?.Dispose();
+        _producer?.Dispose();
         base.Dispose();
         GC.SuppressFinalize(this);
-    }
-
-    private bool IsValidBotMessage(BotMessage? message)
-    {
-        return message != null
-            && message.Data != null
-            && !string.IsNullOrEmpty(message.Data.ChatId)
-            && !string.IsNullOrEmpty(message.Data.Text);
     }
 }

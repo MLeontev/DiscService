@@ -1,3 +1,4 @@
+using DiscService.Constants;
 using DiscService.Data;
 using DiscService.Messaging.Models;
 using DiscService.Models;
@@ -47,7 +48,7 @@ public class ResultService
             return BotMessage.Create(
                 chatId,
                 kafkaMessageId,
-                "Недостаточно данных. Пройдите тест /start_disc_test дважды для сравнения.",
+                $"Недостаточно данных. Пройдите тест {BotCommands.StartTestCommand} не менее 2-х раз для сравнения",
                 parseMode: null);
         }
 

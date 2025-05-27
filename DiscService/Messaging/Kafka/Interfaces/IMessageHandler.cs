@@ -1,6 +1,6 @@
 using DiscService.Messaging.Models;
 
-namespace DiscService.Messaging.Kafka;
+namespace DiscService.Messaging.Kafka.Interfaces;
 
 public interface IMessageHandler
 {

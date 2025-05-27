@@ -1,0 +1,33 @@
+﻿services:
+  discservice:
+    image: discservice
+    build:
+      context: .
+      dockerfile: DiscService/Dockerfile
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=disc-db;Port=5432;User Id=postgres;Password=postgres;Database=DiscService;
+      - KafkaSettings__BootstrapServers=kafka:9092
+    depends_on:
+      disc-db:
+        condition: service_healthy
+    networks:
+      - dev_command-manager-network
+
+  disc-db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: DiscService
+    healthcheck:
+      test: [ 'CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}' ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+    networks:
+      - dev_command-manager-network
+
+networks:
+  dev_command-manager-network:
+    external: true

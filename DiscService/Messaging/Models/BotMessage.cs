@@ -23,7 +23,7 @@ public class BotMessage
         string chatId,
         Guid kafkaMessageId,
         string text,
-        object? replyMarkup = null,
+        InlineKeyboardMarkup? replyMarkup = null,
         string status = "COMPLETED",
         string? parseMode = "Markdown")
     {

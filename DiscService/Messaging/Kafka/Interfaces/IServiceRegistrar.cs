@@ -1,4 +1,4 @@
-namespace DiscService.Messaging.Kafka;
+namespace DiscService.Messaging.Kafka.Interfaces;
 
 public interface IServiceRegistrar
 {

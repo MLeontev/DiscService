@@ -2,6 +2,7 @@
 using DiscService.Data;
 using DiscService.Data.Repositories;
 using DiscService.Messaging.Kafka;
+using DiscService.Messaging.Kafka.Interfaces;
 using DiscService.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -41,6 +42,10 @@ class Program
 
                 services.AddDbContext<AppDbContext>(options =>
                     options.UseNpgsql(context.Configuration.GetConnectionString("DefaultConnection")));
+
+                using var scope = services.BuildServiceProvider().CreateScope();
+                var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                dbContext.Database.Migrate();
             })
             .Build();
 

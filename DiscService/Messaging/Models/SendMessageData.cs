@@ -17,5 +17,5 @@ public class MessageData
     public string? ParseMode { get; set; }
 
     [JsonPropertyName("reply_markup")]
-    public object? ReplyMarkup { get; set; }
+    public InlineKeyboardMarkup? ReplyMarkup { get; set; }
 }

@@ -1,10 +1,12 @@
+using DiscService.Constants;
+using DiscService.Messaging.Models;
 using DiscService.Models;
 
 namespace DiscService.Services.Utils;
 
 public static class KeyboardBuilder
 {
-    private static readonly Dictionary<string, string> LabelMap = new Dictionary<string, string>
+    private static readonly Dictionary<string, string> LabelMap = new()
     {
         ["А"] = "A",
         ["Б"] = "B",
@@ -12,37 +14,42 @@ public static class KeyboardBuilder
         ["Г"] = "D"
     };
 
-    public static object BuildAnswerKeyboard(Question question)
+    public static InlineKeyboardMarkup BuildAnswerKeyboard(Question question)
     {
-        return new
-        {
-            inline_keyboard = question.Answers
-                .Select(a => new
-                {
-                    text = a.Label,
-                    callback_data = $"disc_answer_{LabelMap[a.Label]}"
-                })
-                .Chunk(2)
-                .Select(chunk => chunk.ToArray())
-                .ToArray()
-        };
+        var rows = question.Answers
+            .Select(a => new InlineKeyboardButton(
+                $"{a.Label}",
+                $"{BotCommands.AnswerPrefix}{LabelMap[a.Label]}"
+            ))
+            .Chunk(2)
+            .Select(chunk => chunk.ToList())
+            .ToList();
+
+        return new InlineKeyboardMarkup(rows);
     }
 
-    public static object BuildDiscInfoKeyboard()
+    public static InlineKeyboardMarkup BuildDiscInfoKeyboard()
     {
-        return new
-        {
-            inline_keyboard = new[]
-            {
-                new[]
-                {
-                    new
-                    {
-                        text = "📚 Получить описание психотипов",
-                        callback_data = "disc_info"
-                    }
-                }
-            }
-        };
+        return new InlineKeyboardMarkup(
+        [
+            [new InlineKeyboardButton("📚 Получить описание психотипов", BotCommands.GetInfoCallback)]
+        ]);
+    }
+
+    public static InlineKeyboardMarkup BuildBeginTestKeyboard()
+    {
+        return new InlineKeyboardMarkup(
+        [
+            [new InlineKeyboardButton("🚀 Начать тест", BotCommands.BeginTestCallback)]
+        ]);
+    }
+
+    public static InlineKeyboardMarkup BuildTestResultKeyboard()
+    {
+        return new InlineKeyboardMarkup(
+        [
+            [new InlineKeyboardButton("📚 Получить описание психотипов", BotCommands.GetInfoCallback)],
+            [new InlineKeyboardButton("📊 Сравнить с предыдущим результатом", BotCommands.CompareResultsCallback)]
+        ]);
     }
 }
