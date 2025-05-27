@@ -32,10 +32,10 @@ class Program
                 services.AddSingleton<IServiceRegistrar, ServiceRegistrar>();
                 services.AddScoped<IMessageHandler, BotMessageHandler>();
 
-                services.AddSingleton<SessionManager>();
-                services.AddScoped<TestService>();
-                services.AddScoped<DiscInfoService>();
-                services.AddScoped<ResultService>();
+                services.AddSingleton<ISessionManager, SessionManager>();
+                services.AddScoped<ITestService, TestService>();
+                services.AddScoped<IDiscInfoService, DiscInfoService>();
+                services.AddScoped<IResultService, ResultService>();
 
                 services.AddSingleton<IDiscInfoRepository, InMemoryDiscInfoRepository>();
                 services.AddSingleton<IQuestionRepository, InMemoryQuestionRepository>();

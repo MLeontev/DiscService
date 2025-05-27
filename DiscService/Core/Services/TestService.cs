@@ -8,15 +8,15 @@ using DiscService.Data.Repositories;
 
 namespace DiscService.Core.Services;
 
-public class TestService
+public class TestService : ITestService
 {
     private readonly IQuestionRepository _questionRepository;
-    private readonly SessionManager _sessionManager;
+    private readonly ISessionManager _sessionManager;
     private readonly AppDbContext _dbContext;
 
     public TestService(
         IQuestionRepository questionRepository,
-        SessionManager sessionManager,
+        ISessionManager sessionManager,
         AppDbContext dbContext)
     {
         _questionRepository = questionRepository;

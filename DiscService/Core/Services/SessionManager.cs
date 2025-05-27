@@ -1,9 +1,10 @@
 using System.Collections.Concurrent;
+using DiscService.Core.Interfaces;
 using DiscService.Core.Models;
 
 namespace DiscService.Core.Services;
 
-public class SessionManager
+public class SessionManager : ISessionManager
 {
     private readonly ConcurrentDictionary<string, UserSession> _sessions = new();
 

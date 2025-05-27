@@ -1,22 +1,23 @@
 using DiscService.Bot.Commands;
 using DiscService.Bot.Messaging.Interfaces;
 using DiscService.Bot.Messaging.Models;
+using DiscService.Core.Interfaces;
 using DiscService.Core.Services;
 
 namespace DiscService.Bot.Messaging.Kafka;
 
 public class BotMessageHandler : IMessageHandler
 {
-    private readonly TestService _testService;
-    private readonly DiscInfoService _discInfoService;
-    private readonly ResultService _resultService;
-    private readonly SessionManager _sessionManager;
+    private readonly ITestService _testService;
+    private readonly IDiscInfoService _discInfoService;
+    private readonly IResultService _resultService;
+    private readonly ISessionManager _sessionManager;
 
     public BotMessageHandler(
-        TestService testService,
-        DiscInfoService discService,
-        ResultService resultService, 
-        SessionManager sessionManager)
+        ITestService testService,
+        IDiscInfoService discService,
+        IResultService resultService, 
+        ISessionManager sessionManager)
     {
         _testService = testService;
         _discInfoService = discService;

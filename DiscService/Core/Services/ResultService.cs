@@ -1,12 +1,13 @@
 using DiscService.Bot.Commands;
 using DiscService.Bot.Messaging.Models;
 using DiscService.Bot.UI;
+using DiscService.Core.Interfaces;
 using DiscService.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace DiscService.Core.Services;
 
-public class ResultService
+public class ResultService : IResultService
 {
     private readonly AppDbContext _dbContext;
 

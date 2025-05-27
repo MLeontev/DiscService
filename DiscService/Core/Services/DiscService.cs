@@ -5,7 +5,7 @@ using DiscService.Data.Repositories;
 
 namespace DiscService.Core.Services;
 
-public class DiscInfoService
+public class DiscInfoService : IDiscInfoService
 {
     private readonly IDiscInfoRepository _discInfoRepository;
 
