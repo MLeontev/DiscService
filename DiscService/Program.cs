@@ -1,9 +1,10 @@
 ﻿using Confluent.Kafka;
+using DiscService.Bot.Messaging.Interfaces;
+using DiscService.Bot.Messaging.Kafka;
+using DiscService.Core.Interfaces;
+using DiscService.Core.Services;
 using DiscService.Data;
 using DiscService.Data.Repositories;
-using DiscService.Messaging.Kafka;
-using DiscService.Messaging.Kafka.Interfaces;
-using DiscService.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,12 +28,11 @@ class Program
                     var config = new ProducerConfig { BootstrapServers = kafkaSettings.BootstrapServers };
                     return new ProducerBuilder<Null, string>(config).Build();
                 });
+                
                 services.AddSingleton<IServiceRegistrar, ServiceRegistrar>();
-
                 services.AddScoped<IMessageHandler, BotMessageHandler>();
 
                 services.AddSingleton<SessionManager>();
-
                 services.AddScoped<TestService>();
                 services.AddScoped<DiscInfoService>();
                 services.AddScoped<ResultService>();
@@ -42,7 +42,6 @@ class Program
 
                 services.AddDbContext<AppDbContext>(options =>
                     options.UseNpgsql(context.Configuration.GetConnectionString("DefaultConnection")));
-
                 using var scope = services.BuildServiceProvider().CreateScope();
                 var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                 dbContext.Database.Migrate();

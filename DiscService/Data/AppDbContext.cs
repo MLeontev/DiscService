@@ -1,4 +1,4 @@
-using DiscService.Models;
+using DiscService.Core.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace DiscService.Data;

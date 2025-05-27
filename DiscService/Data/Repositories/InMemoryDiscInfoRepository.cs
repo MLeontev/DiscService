@@ -1,4 +1,5 @@
-using DiscService.Models;
+using DiscService.Core.Interfaces;
+using DiscService.Core.Models;
 
 namespace DiscService.Data.Repositories;
 
