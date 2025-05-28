@@ -66,7 +66,10 @@ public class TestService : ITestService
         var selectedAnswer = currentQuestion?.Answers.FirstOrDefault(a => a.Label == label);
         if (selectedAnswer == null) return null;
 
-        session.UserAnswers.Add(new UserAnswer(session.CurrentQuestionNumber, selectedAnswer.Label, selectedAnswer.DiscType));
+        session.UserAnswers.Add(new UserAnswer(
+            session.CurrentQuestionNumber, 
+            selectedAnswer.Label, 
+            selectedAnswer.DiscTypes.ToArray()));
         session.CurrentQuestionNumber++;
 
         if (session.CurrentQuestionNumber > _questionRepository.GetCount())
@@ -120,10 +123,10 @@ public class TestService : ITestService
         {
             ChatId = session.ChatId,
             FinishedAt = DateTime.UtcNow,
-            DominanceScore = session.UserAnswers.Count(a => a.SelectedCategory == DiscType.Dominance),
-            InfluenceScore = session.UserAnswers.Count(a => a.SelectedCategory == DiscType.Influence),
-            SteadinessScore = session.UserAnswers.Count(a => a.SelectedCategory == DiscType.Steadiness),
-            ComplianceScore = session.UserAnswers.Count(a => a.SelectedCategory == DiscType.Compliance)
+            DominanceScore = session.UserAnswers.Count(a => a.SelectedCategories.Contains(DiscType.Dominance)),
+            InfluenceScore = session.UserAnswers.Count(a => a.SelectedCategories.Contains(DiscType.Influence)),
+            SteadinessScore = session.UserAnswers.Count(a => a.SelectedCategories.Contains(DiscType.Steadiness)),
+            ComplianceScore = session.UserAnswers.Count(a => a.SelectedCategories.Contains(DiscType.Compliance))    
         };
 
         _dbContext.TestResults.Add(result);
