@@ -63,7 +63,7 @@ public class InMemoryQuestionRepository : IQuestionRepository
             }
         )
     ];
-    
+
     public Question? GetByNumber(int number)
     {
         return Questions.FirstOrDefault(q => q.Number == number);
@@ -72,5 +72,10 @@ public class InMemoryQuestionRepository : IQuestionRepository
     public List<Question> GetAll()
     {
         return Questions;
+    }
+
+    public int GetCount()
+    {
+        return Questions.Count;
     }
 }

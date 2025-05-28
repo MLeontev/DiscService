@@ -26,8 +26,11 @@ public class TestService : ITestService
 
     public BotMessage StartTest(string chatId, Guid kafkaMessageId)
     {
-        var questionCount = _questionRepository.GetAll().Count;
-        
+        var questionCount = _questionRepository.GetCount();
+        if (questionCount == 0)
+            return BotMessage.Create(chatId, kafkaMessageId,
+                "Сейчас тест не доступен. Попробуйте позже", parseMode: null);
+
         var greeting = $"Вы собираетесь пройти DISC-тест.\n\n🧠 Всего {questionCount} вопросов. Отвечайте честно, выбрав утверждение, которое лучше всего вас описывает.\n\nВы можете прервать тест в любой момент, отправив {BotCommands.CancelTestCommand}.\n\nГотовы начать?";
 
         return BotMessage.Create(
@@ -66,7 +69,7 @@ public class TestService : ITestService
         session.UserAnswers.Add(new UserAnswer(session.CurrentQuestionNumber, selectedAnswer.Label, selectedAnswer.DiscType));
         session.CurrentQuestionNumber++;
 
-        if (session.CurrentQuestionNumber > _questionRepository.GetAll().Count)
+        if (session.CurrentQuestionNumber > _questionRepository.GetCount())
             return await FinishTest(session, kafkaMessageId);
 
         return GetQuestionMessage(chatId, session.CurrentQuestionNumber, kafkaMessageId);
@@ -80,7 +83,7 @@ public class TestService : ITestService
                 "Тест не начат или завершён", parseMode: null);
 
         _sessionManager.RemoveSession(chatId);
-        
+
         return BotMessage.Create(chatId, kafkaMessageId,
             $"Тест отменен. Отправьте {BotCommands.StartTestCommand}, чтобы начать заново", parseMode: null);
     }
@@ -90,7 +93,7 @@ public class TestService : ITestService
         var question = _questionRepository.GetByNumber(number);
         if (question == null) return null;
 
-        var questionsCount = _questionRepository.GetAll().Count;
+        var questionsCount = _questionRepository.GetCount();
 
         return BotMessage.Create(chatId, kafkaMessageId,
             MessageFormatter.FormatQuestion(question, questionsCount),

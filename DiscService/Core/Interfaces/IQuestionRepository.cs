@@ -6,4 +6,5 @@ public interface IQuestionRepository
 {
     Question? GetByNumber(int number);
     List<Question> GetAll();
+    int GetCount();
 }
