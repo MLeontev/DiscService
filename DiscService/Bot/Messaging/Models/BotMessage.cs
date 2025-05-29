@@ -40,7 +40,7 @@ public class BotMessage
     /// <param name="chatId">ID чата получателя.</param>
     /// <param name="kafkaMessageId">ID Kafka-сообщения.</param>
     /// <param name="text">Текст сообщения.</param>
-    /// <param name="replyMarkup">Инлайн-клавиатура.</param>
+    /// <param name="replyMarkup">Инлайн-клавиатура (по умолчанию null).</param>
     /// <param name="status">Статус (по умолчанию "COMPLETED").</param>
     /// <param name="parseMode">Форматирование текста (по умолчанию "Markdown").</param>
     /// <returns>Готовое для отправки сообщение.</returns>

@@ -6,7 +6,7 @@ using DiscService.Core.Interfaces;
 namespace DiscService.Bot.Messaging.Kafka;
 
 /// <summary>
-/// Обрабатывает входящие сообщения бота и маршрутизирует команды к соответствующим сервисам.
+/// Реализация <see cref="IMessageHandler"/> для обработки входящих сообщений бота и маршрутизации команд к соответствующим сервисам.
 /// </summary>
 public class BotMessageHandler : IMessageHandler
 {

@@ -11,6 +11,6 @@ public interface IMessageHandler
     /// Обрабатывает входящее сообщение бота и возвращает ответное сообщение.
     /// </summary>
     /// <param name="incoming">Входящее сообщение.</param>
-    /// <returns>Ответное сообщение бота или null, если обработка невозможна.</returns>
+    /// <returns>Ответное сообщение бота или <c>null</c>, если обработка невозможна.</returns>
     Task<BotMessage?> HandleAsync(BotMessage incoming);
 }
