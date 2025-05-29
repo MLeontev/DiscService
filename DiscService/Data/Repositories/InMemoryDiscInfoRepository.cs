@@ -3,6 +3,9 @@ using DiscService.Core.Models;
 
 namespace DiscService.Data.Repositories;
 
+/// <summary>
+/// Реализация <see cref="IDiscInfoRepository"/>, использующая in-memory словарь.
+/// </summary>
 public class InMemoryDiscInfoRepository : IDiscInfoRepository
 {
     private static readonly Dictionary<DiscType, DiscInfo> DiscInfos = new()
@@ -36,11 +39,13 @@ public class InMemoryDiscInfoRepository : IDiscInfoRepository
             "Для эффективности работы порой их стоит выводить из состояния обдумывания, чтобы призвать к реальным действиям.")
     };
 
+    /// <inheritdoc />
     public DiscInfo GetByType(DiscType type)
     {
         return DiscInfos[type];
     }
 
+    /// <inheritdoc />
     public List<DiscInfo> GetAll()
     {
         return DiscInfos.Values.ToList();

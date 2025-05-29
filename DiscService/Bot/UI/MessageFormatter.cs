@@ -3,8 +3,17 @@ using DiscService.Core.Models;
 
 namespace DiscService.Bot.UI;
 
+/// <summary>
+/// Форматирует сообщения для отображения в Telegram-боте.
+/// </summary>
 public static class MessageFormatter
 {
+    /// <summary>
+    /// Форматирует текст вопроса и вариантов ответов.
+    /// </summary>
+    /// <param name="question">Вопрос DISC-теста.</param>
+    /// <param name="questionsCount">Общее количество вопросов в тесте.</param>
+    /// <returns>Форматированное сообщение с текстом вопроса и вариантами ответов.</returns>
     public static string FormatQuestion(Question question, int questionsCount)
     {
         var sb = new StringBuilder();
@@ -21,6 +30,11 @@ public static class MessageFormatter
         return sb.ToString();
     }
 
+    /// <summary>
+    /// Форматирует результат DISC-теста.
+    /// </summary>
+    /// <param name="result">Результат теста.</param>
+    /// <returns>Форматированный текст результата с доминирующим типом.</returns>
     public static string FormatResult(TestResult result)
     {
         var sb = new StringBuilder();
@@ -47,7 +61,7 @@ public static class MessageFormatter
 
         if (mainTypes.Count == scores.Count)
         {
-            sb.AppendLine("*🧠 Ваш результат показывает равномерное распределение всех четырёх типов DISC.*");
+            sb.AppendLine("*Ваш результат показывает равномерное распределение всех четырёх типов DISC.*");
         }
         else if (mainTypes.Count == 1)
         {
@@ -63,6 +77,11 @@ public static class MessageFormatter
         return sb.ToString();
     }
 
+    /// <summary>
+    /// Форматирует информацию о всех типах DISC.
+    /// </summary>
+    /// <param name="infos">Список описаний DISC-типов.</param>
+    /// <returns>Форматированный текст с описанием каждого типа.</returns>
     public static string FormatDiscInfo(List<DiscInfo> infos)
     {
         var sb = new StringBuilder();
@@ -78,6 +97,12 @@ public static class MessageFormatter
         return sb.ToString();
     }
 
+    /// <summary>
+    /// Форматирует сравнение результатов DISC-теста.
+    /// </summary>
+    /// <param name="previous">Предыдущий результат.</param>
+    /// <param name="current">Текущий результат.</param>
+    /// <returns>Форматированный текст с разницей по шкалам DISC.</returns>
     public static string FormatComparison(TestResult previous, TestResult current)
     {
         var sb = new StringBuilder();

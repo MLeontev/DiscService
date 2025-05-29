@@ -7,15 +7,23 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DiscService.Core.Services;
 
+/// <summary>
+/// Реализация <see cref="IResultService"/> для получения и сравнения результатов DISC-теста.
+/// </summary>
 public class ResultService : IResultService
 {
     private readonly AppDbContext _dbContext;
 
+    /// <summary>
+    /// Инициализирует новый экземпляр <see cref="ResultService"/>.
+    /// </summary>
+    /// <param name="dbContext">Контекст базы данных.</param>
     public ResultService(AppDbContext dbContext)
     {
         _dbContext = dbContext;
     }
 
+    /// <inheritdoc />
     public async Task<BotMessage> GetLastResultAsync(string chatId, Guid kafkaMessageId)
     {
         var lastResult = await _dbContext.TestResults
@@ -35,6 +43,7 @@ public class ResultService : IResultService
             KeyboardBuilder.BuildResultMenuKeyboard());
     }
 
+    /// <inheritdoc />
     public async Task<BotMessage> CompareResults(string chatId, Guid kafkaMessageId)
     {
         var results = await _dbContext.TestResults

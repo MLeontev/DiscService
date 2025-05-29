@@ -3,6 +3,9 @@ using DiscService.Core.Models;
 
 namespace DiscService.Data.Repositories;
 
+/// <summary>
+/// Реализация <see cref="IQuestionRepository"/>, использующая in-memory словарь.
+/// </summary>
 public class InMemoryQuestionRepository : IQuestionRepository
 {
     private static readonly List<Question> Questions =
@@ -170,16 +173,19 @@ public class InMemoryQuestionRepository : IQuestionRepository
         )
     ];
 
+    /// <inheritdoc />
     public Question? GetByNumber(int number)
     {
         return Questions.FirstOrDefault(q => q.Number == number);
     }
 
+    /// <inheritdoc />
     public List<Question> GetAll()
     {
         return Questions;
     }
 
+    /// <inheritdoc />
     public int GetCount()
     {
         return Questions.Count;

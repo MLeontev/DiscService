@@ -8,12 +8,21 @@ using Microsoft.Extensions.Options;
 
 namespace DiscService.Bot.Messaging.Kafka;
 
+/// <summary>
+/// Реализация регистратора сервиса, использующая Kafka для обмена сообщениями.
+/// </summary>
 public class ServiceRegistrar : IServiceRegistrar
 {
     private readonly KafkaSettings _kafkaSettings;
     private readonly IProducer<Null, string> _producer;
     private readonly ILogger<ServiceRegistrar> _logger;
 
+    /// <summary>
+    /// Инициализирует новый экземпляр класса <see cref="ServiceRegistrar"/>.
+    /// </summary>
+    /// <param name="kafkaSettings">Настройки подключения к Kafka.</param>
+    /// <param name="producer">Продюсер Kafka для отправки сообщений.</param>
+    /// <param name="logger">Логгер для записи информации о работе регистратора.</param>
     public ServiceRegistrar(
         IOptions<KafkaSettings> kafkaSettings,
         IProducer<Null, string> producer,
@@ -24,6 +33,7 @@ public class ServiceRegistrar : IServiceRegistrar
         _kafkaSettings = kafkaSettings.Value;
     }
 
+    /// <inheritdoc/>
     public async Task<(string consumeTopic, string produceTopic)> RegisterAsync(CancellationToken stoppingToken)
     {
         var consumerConfig = new ConsumerConfig
@@ -39,7 +49,7 @@ public class ServiceRegistrar : IServiceRegistrar
         var registrationRequest = new ServiceRegistrationRequest
         {
             Name = _kafkaSettings.ServiceName,
-            Description = "Описание сервиса",
+            Description = "Сервис для прохождения DISC-тестирования",
             Commands =
             [
                 new CommandInfo(BotCommands.GetInfoCommand, "Получить описание психотипов по DISC", "ADD", "ANONYMOUS"),

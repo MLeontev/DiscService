@@ -8,12 +8,21 @@ using DiscService.Data.Repositories;
 
 namespace DiscService.Core.Services;
 
+/// <summary>
+/// Реализация <see cref="ITestService"/> для управления прохождением DISC-теста.
+/// </summary>
 public class TestService : ITestService
 {
     private readonly IQuestionRepository _questionRepository;
     private readonly ISessionManager _sessionManager;
     private readonly AppDbContext _dbContext;
 
+    /// <summary>
+    /// Инициализирует новый экземпляр <see cref="TestService"/>.
+    /// </summary>
+    /// <param name="questionRepository">Репозиторий вопросов теста.</param>
+    /// <param name="sessionManager">Менеджер сессий пользователей.</param>
+    /// <param name="dbContext">Контекст базы данных.</param>
     public TestService(
         IQuestionRepository questionRepository,
         ISessionManager sessionManager,
@@ -24,6 +33,7 @@ public class TestService : ITestService
         _dbContext = dbContext;
     }
 
+    /// <inheritdoc />
     public BotMessage StartTest(string chatId, Guid kafkaMessageId)
     {
         var questionCount = _questionRepository.GetCount();
@@ -42,6 +52,7 @@ public class TestService : ITestService
         );
     }
 
+    /// <inheritdoc />
     public BotMessage? BeginTest(string chatId, Guid kafkaMessageId)
     {
         var session = _sessionManager.CreateSession(chatId);
@@ -49,6 +60,7 @@ public class TestService : ITestService
         return GetQuestionMessage(chatId, 1, kafkaMessageId);
     }
 
+    /// <inheritdoc />
     public async Task<BotMessage?> AnswerQuestion(string chatId, string callbackData, Guid kafkaMessageId)
     {
         var session = _sessionManager.GetSession(chatId);
@@ -78,17 +90,21 @@ public class TestService : ITestService
         return GetQuestionMessage(chatId, session.CurrentQuestionNumber, kafkaMessageId);
     }
 
-    public BotMessage CancelTest(string chatId, Guid kafkaMessageId)
+    /// <inheritdoc />
+    public BotMessage? CancelTest(string chatId, Guid kafkaMessageId)
     {
         var session = _sessionManager.GetSession(chatId);
         if (session == null)
             return BotMessage.Create(chatId, kafkaMessageId,
                 "Тест не начат или завершён", parseMode: null);
 
-        _sessionManager.RemoveSession(chatId);
+        if (_sessionManager.RemoveSession(chatId))
+        {
+            return BotMessage.Create(chatId, kafkaMessageId,
+                $"Тест отменен. Отправьте {BotCommands.StartTestCommand}, чтобы начать заново", parseMode: null);
+        }
 
-        return BotMessage.Create(chatId, kafkaMessageId,
-            $"Тест отменен. Отправьте {BotCommands.StartTestCommand}, чтобы начать заново", parseMode: null);
+        return null;
     }
 
     private BotMessage? GetQuestionMessage(string chatId, int number, Guid kafkaMessageId)
@@ -115,9 +131,9 @@ public class TestService : ITestService
         };
     }
 
-    private async Task<BotMessage> FinishTest(UserSession session, Guid kafkaMessageId)
+    private async Task<BotMessage?> FinishTest(UserSession session, Guid kafkaMessageId)
     {
-        _sessionManager.RemoveSession(session.ChatId);
+        if (!_sessionManager.RemoveSession(session.ChatId)) return null;
 
         var result = new TestResult
         {

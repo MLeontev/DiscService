@@ -9,6 +9,10 @@ using Microsoft.Extensions.Options;
 
 namespace DiscService.Bot.Messaging.Kafka;
 
+/// <summary>
+/// Background-сервис для обработки сообщений от бота через Kafka и отправки ответов.
+/// Используется для обмена командами и сообщениями между DISC-сервисом и ботом.
+/// </summary>
 public class KafkaCommandService : BackgroundService
 {
     private readonly ILogger<KafkaCommandService> _logger;
@@ -22,6 +26,14 @@ public class KafkaCommandService : BackgroundService
     private string _consumeTopic;
     private string _produceTopic;
 
+    /// <summary>
+    /// Инициализирует новый экземпляр класса <see cref="KafkaCommandService"/>.
+    /// </summary>
+    /// <param name="logger">Логгер для записи информации о работе сервиса.</param>
+    /// <param name="producer">Kafka producer для отправки сообщений.</param>
+    /// <param name="kafkaSettings">Настройки подключения к Kafka.</param>
+    /// <param name="serviceRegistrar">Сервис для регистрации и получения топиков.</param>
+    /// <param name="serviceScopeFactory">Фабрика для создания скоупов зависимостей.</param>
     public KafkaCommandService(
         ILogger<KafkaCommandService> logger,
         IProducer<Null, string> producer,
@@ -36,6 +48,10 @@ public class KafkaCommandService : BackgroundService
         _serviceScopeFactory = serviceScopeFactory;
     }
 
+    /// <summary>
+    /// Запускает основной цикл обработки входящих сообщений из Kafka и отправки ответов.
+    /// </summary>
+    /// <param name="stoppingToken">Токен отмены операции.</param>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         (_consumeTopic, _produceTopic) = await _serviceRegistrar.RegisterAsync(stoppingToken);
@@ -81,6 +97,9 @@ public class KafkaCommandService : BackgroundService
         }
     }
 
+    /// <summary>
+    /// Освобождает ресурсы, используемые сервисом, и корректно завершает работу с Kafka.
+    /// </summary>
     public override void Dispose()
     {
         _consumer?.Close();

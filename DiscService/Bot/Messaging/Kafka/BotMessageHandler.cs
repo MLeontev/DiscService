@@ -2,10 +2,12 @@ using DiscService.Bot.Commands;
 using DiscService.Bot.Messaging.Interfaces;
 using DiscService.Bot.Messaging.Models;
 using DiscService.Core.Interfaces;
-using DiscService.Core.Services;
 
 namespace DiscService.Bot.Messaging.Kafka;
 
+/// <summary>
+/// Обрабатывает входящие сообщения бота и маршрутизирует команды к соответствующим сервисам.
+/// </summary>
 public class BotMessageHandler : IMessageHandler
 {
     private readonly ITestService _testService;
@@ -13,10 +15,17 @@ public class BotMessageHandler : IMessageHandler
     private readonly IResultService _resultService;
     private readonly ISessionManager _sessionManager;
 
+    /// <summary>
+    /// Инициализирует новый экземпляр класса <see cref="BotMessageHandler"/>.
+    /// </summary>
+    /// <param name="testService">Сервис для работы с DISC-тестом.</param>
+    /// <param name="discService">Сервис для получения информации о DISC.</param>
+    /// <param name="resultService">Сервис для работы с результатами теста.</param>
+    /// <param name="sessionManager">Менеджер пользовательских сессий.</param>
     public BotMessageHandler(
         ITestService testService,
         IDiscInfoService discService,
-        IResultService resultService, 
+        IResultService resultService,
         ISessionManager sessionManager)
     {
         _testService = testService;
@@ -24,7 +33,9 @@ public class BotMessageHandler : IMessageHandler
         _resultService = resultService;
         _sessionManager = sessionManager;
     }
-
+    
+    
+    /// <inheritdoc/>
     public async Task<BotMessage?> HandleAsync(BotMessage incoming)
     {
         if (incoming.Data.ChatId == null || incoming.Data.Text == null) return null;
@@ -32,13 +43,13 @@ public class BotMessageHandler : IMessageHandler
         var chatId = incoming.Data.ChatId;
         var text = incoming.Data.Text;
         var messageId = incoming.KafkaMessageId;
-        
+
         if (text.StartsWith(BotCommands.AnswerPrefix))
             return await _testService.AnswerQuestion(chatId, text, messageId);
-        
+
         if (text == BotCommands.CancelTestCommand)
             return _testService.CancelTest(chatId, messageId);
-        
+
         if (_sessionManager.HasSession(chatId))
             return RestrictCommandDuringTest(chatId, messageId);
 
@@ -48,7 +59,7 @@ public class BotMessageHandler : IMessageHandler
             BotCommands.BeginTestCallback => _testService.BeginTest(incoming.Data.ChatId, incoming.KafkaMessageId),
 
             BotCommands.LastResultCommand => await _resultService.GetLastResultAsync(incoming.Data.ChatId, incoming.KafkaMessageId),
-            
+
             BotCommands.CompareResultsCommand => await _resultService.CompareResults(incoming.Data.ChatId, incoming.KafkaMessageId),
             BotCommands.CompareResultsCallback => await _resultService.CompareResults(incoming.Data.ChatId, incoming.KafkaMessageId),
 
@@ -58,7 +69,7 @@ public class BotMessageHandler : IMessageHandler
             _ => BotMessage.Create(chatId, messageId, "Неизвестная команда.", parseMode: null)
         };
     }
-    
+
     private BotMessage RestrictCommandDuringTest(string chatId, Guid kafkaMessageId)
     {
         return BotMessage.Create(
