@@ -34,7 +34,7 @@ public static class MessageFormatter
     /// Форматирует результат DISC-теста.
     /// </summary>
     /// <param name="result">Результат теста.</param>
-    /// <returns>Форматированный текст результата с доминирующим типом.</returns>
+    /// <returns>Форматированный текст результата с доминирующими и вторичными стилями.</returns>
     public static string FormatResult(TestResult result)
     {
         var sb = new StringBuilder();
@@ -54,24 +54,35 @@ public static class MessageFormatter
         
         var maxScore = scores.Max(x => x.Value);
         
-        var mainTypes = scores
+        var primaryTypes = scores
             .Where(kvp => kvp.Value == maxScore)
             .Select(kvp => kvp.Key)
             .ToList();
 
-        if (mainTypes.Count == scores.Count)
+        if (primaryTypes.Count == scores.Count)
         {
-            sb.AppendLine("*Ваш результат показывает равномерное распределение всех четырёх типов DISC.*");
+            sb.AppendLine("*Ваш результат показывает равномерное распределение всех четырёх стилей DISC.*");
         }
-        else if (mainTypes.Count == 1)
+        else if (primaryTypes.Count > 1)
         {
-            var type = mainTypes.First();
-            sb.AppendLine($"*Ваш доминирующий тип — {type.ToEmoji()} {type.ToString()[0]}*");
+            sb.AppendLine($"*Ваши доминирующие стили — {string.Join(", ", primaryTypes.Select(t => $"{t.ToEmoji()} {t.ToString()[0]}"))}*");
         }
         else
         {
-            var types = string.Join(", ", mainTypes.Select(t => $"{t.ToEmoji()} {t.ToString()[0]}"));
-            sb.AppendLine($"*Ваши доминирующие типы — {types}*");
+            var primaryType = primaryTypes.Single();
+            var secondaryTypes = scores
+                .Where(x => x.Key != primaryType && x.Value >= maxScore - 2)
+                .Select(x => x.Key)
+                .ToList();
+            
+            if (secondaryTypes.Count == 0)
+            {
+                sb.AppendLine($"*Ваш доминирующий стиль — {primaryType.ToEmoji()} {primaryType.ToString()[0]}*");
+            }
+            else
+            {
+                sb.AppendLine($"*Ваш доминирующий стиль — {primaryType.ToEmoji()} {primaryType.ToString()[0]}, вторичный(е) — {string.Join(", ", secondaryTypes.Select(t => $"{t.ToEmoji()} {t.ToString()[0]}"))}*");
+            }
         }
         
         return sb.ToString();
