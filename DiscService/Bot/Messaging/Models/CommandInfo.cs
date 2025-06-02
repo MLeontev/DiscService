@@ -33,6 +33,9 @@ public class CommandInfo
     [JsonPropertyName("right")]
     public string Right { get; set; }
     
+    [JsonPropertyName("availability")]
+    public string Availability { get; set; }
+    
     /// <summary>
     /// Инициализирует новый экземпляр <see cref="CommandInfo"/>.
     /// </summary>
@@ -40,11 +43,12 @@ public class CommandInfo
     /// <param name="description">Описание команды.</param>
     /// <param name="action">Действие, которое должно быть выполнено над командой.</param>
     /// <param name="right">Требуемые права доступа.</param>
-    public CommandInfo(string name, string description, string action, string right)
+    public CommandInfo(string name, string description, string action, string right, string availability)
     {
         Name = name;
         Description = description;
         Action = action;
         Right = right;
+        Availability = availability;
     }
 }

@@ -52,20 +52,20 @@ public class ServiceRegistrar : IServiceRegistrar
             Description = "Сервис для прохождения DISC-тестирования",
             Commands =
             [
-                new CommandInfo(BotCommands.GetInfoCommand, "Получить описание психотипов по DISC", "ADD", "ANONYMOUS"),
-                new CommandInfo(BotCommands.StartTestCommand, "Начать DISC-тестирование", "ADD", "ANONYMOUS"),
-                new CommandInfo(BotCommands.LastResultCommand, "Получить результат последнего DISC-тестирования", "ADD", "ANONYMOUS"),
-                new CommandInfo(BotCommands.CompareResultsCommand, "Сравнить результаты DISC-тестирования", "ADD", "ANONYMOUS"),
-                new CommandInfo(BotCommands.CancelTestCommand, "Прервать DISC-тестирование", "ADD", "ANONYMOUS"),
+                new CommandInfo(BotCommands.GetInfoCommand, "Получить описание психотипов по DISC", "ADD", "ANONYMOUS", "USER"),
+                new CommandInfo(BotCommands.StartTestCommand, "Начать DISC-тестирование", "ADD", "ANONYMOUS", "USER"),
+                new CommandInfo(BotCommands.LastResultCommand, "Получить результат последнего DISC-тестирования", "ADD", "ANONYMOUS", "USER"),
+                new CommandInfo(BotCommands.CompareResultsCommand, "Сравнить результаты DISC-тестирования", "ADD", "ANONYMOUS", "USER"),
+                new CommandInfo(BotCommands.CancelTestCommand, "Прервать DISC-тестирование", "ADD", "ANONYMOUS", "USER"),
 
-                new CommandInfo(BotCommands.AnswerA, "Ответ A на текущий вопрос DISC-теста", "ADD", "ANONYMOUS"),
-                new CommandInfo(BotCommands.AnswerB, "Ответ Б на текущий вопрос DISC-теста", "ADD", "ANONYMOUS"),
-                new CommandInfo(BotCommands.AnswerC, "Ответ В на текущий вопрос DISC-теста", "ADD", "ANONYMOUS"),
-                new CommandInfo(BotCommands.AnswerD, "Ответ Г на текущий вопрос DISC-теста", "ADD", "ANONYMOUS"),
+                new CommandInfo(BotCommands.AnswerA, "Ответ A на текущий вопрос DISC-теста", "ADD", "ANONYMOUS", "USER"),
+                new CommandInfo(BotCommands.AnswerB, "Ответ Б на текущий вопрос DISC-теста", "ADD", "ANONYMOUS", "USER"),
+                new CommandInfo(BotCommands.AnswerC, "Ответ В на текущий вопрос DISC-теста", "ADD", "ANONYMOUS", "USER"),
+                new CommandInfo(BotCommands.AnswerD, "Ответ Г на текущий вопрос DISC-теста", "ADD", "ANONYMOUS", "USER"),
 
-                new CommandInfo(BotCommands.GetInfoCallback, "Получить описание психотипов по DISC", "ADD", "ANONYMOUS"),
-                new CommandInfo(BotCommands.CompareResultsCallback, "Сравнить результаты DISC-тестирования", "ADD", "ANONYMOUS"),
-                new CommandInfo(BotCommands.BeginTestCallback, "Начать DISC-тестирование", "ADD", "ANONYMOUS"),
+                new CommandInfo(BotCommands.GetInfoCallback, "Получить описание психотипов по DISC", "ADD", "ANONYMOUS", "USER"),
+                new CommandInfo(BotCommands.CompareResultsCallback, "Сравнить результаты DISC-тестирования", "ADD", "ANONYMOUS", "USER"),
+                new CommandInfo(BotCommands.BeginTestCallback, "Начать DISC-тестирование", "ADD", "ANONYMOUS", "USER"),
             ]
         };
 
