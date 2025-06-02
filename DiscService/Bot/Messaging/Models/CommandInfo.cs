@@ -26,16 +26,19 @@ public class CommandInfo
     [JsonPropertyName("action")]
     public string Action { get; set; }
 
-    
+
     /// <summary>
     /// Права доступа, необходимые для использования команды.
     /// </summary>
     [JsonPropertyName("right")]
     public string Right { get; set; }
-    
+
+    /// <summary>
+    /// Доступность команды.
+    /// </summary>
     [JsonPropertyName("availability")]
     public string Availability { get; set; }
-    
+
     /// <summary>
     /// Инициализирует новый экземпляр <see cref="CommandInfo"/>.
     /// </summary>
